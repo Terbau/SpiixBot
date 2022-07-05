@@ -38,6 +38,14 @@ namespace SpiixBot
             IServiceProvider provider = services.BuildServiceProvider();
             IConfiguration configuration = provider.GetService<IConfiguration>();
 
+            if (configuration["DISCORD_BOT_TOKEN"] == "" ||
+                configuration["SPOTIFY_CLIENT_ID"] == "" ||
+                configuration["SPOTIFY_SECRET"] == "")
+            {
+                throw new Exception("Some required environment variables are not set.");
+                return;
+            }
+
             var client = provider.GetRequiredService<DiscordSocketClient>();
 
             string token = configuration["DISCORD_BOT_TOKEN"];
@@ -79,8 +87,6 @@ namespace SpiixBot
                 Console.WriteLine(message.ToString());
                 return Task.CompletedTask;
             };
-
-            
 
             await Task.Delay(-1);
         }
