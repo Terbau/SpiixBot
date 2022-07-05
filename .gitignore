@@ -7,7 +7,9 @@
 *.com
 *.class
 *.dll
+!Binaries/*.dll
 *.exe
+!Binaries/*.exe
 *.pdb
 *.dll.config
 *.cache
@@ -261,3 +263,16 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+Properties
+TestSpiixBot
+appsettings.json
+MalagaTextFiles
+
+# Hidden modules
+TrollingModule.cs
+TestModule.cs
+TestHelpModule.cs
+
+# Hidden services
+LailaService.cs
