@@ -6,7 +6,7 @@ services:
       context: ./
       dockerfile: "./SpiixBot/SpiixBot/Dockerfile"
     environment:
-      HOSTNAME: "lavalink" # don't change unless you know what you are doing
+      LAVALINK_HOSTNAME: "lavalink" # don't change unless you know what you are doing
       PREFIX: "!"
       DISCORD_BOT_TOKEN: ""
       SPOTIFY_CLIENT_ID: ""
