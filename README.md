@@ -21,7 +21,7 @@ You need to have docker and docker compose installed. Here's a quick guide on ho
 ```
 git clone https://github.com/Terbau/SpiixBot.git
 ```
-Alternatively you could just download the repository as a zip and extract it wherever you want it.
+Alternatively you could just download the repository as a zip and extract it wherever you want.
 
 ## Configuration
 All environment variables needs to be configured in `docker-compose.yml`. If you for some reason don't wish to use docker at all, you can put them in `SpiixBot/SpiixBot/appsettings.json`. Running without docker is not recommended but entirely possible. In that case you need to configure and run Lavalink (for now it must be a dev version since this bot requires filters) in its own process.
@@ -30,7 +30,7 @@ All environment variables needs to be configured in `docker-compose.yml`. If you
 - (**Required**) You need create a [spotify developer application](https://developer.spotify.com/dashboard/applications). Set the client id and secret using `SPOTIFY_CLIENT_ID` and `SPOTIFY_SECRET`
 
 ## Run
-To run the bot, simply cd into the cloned directory and use this command
+To run the bot, simply cd into the cloned directory and use this command:
 ```
 docker-compose up
 ```
