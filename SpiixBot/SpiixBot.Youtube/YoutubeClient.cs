@@ -136,6 +136,8 @@ namespace SpiixBot.Youtube
                 if (videos.Count == limit) break;
             }
 
+            if (videos.Count == 0) throw new NotFoundException();
+
             return videos;
         }
 
