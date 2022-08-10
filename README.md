@@ -28,6 +28,7 @@ All environment variables needs to be configured in `docker-compose.yml`. If you
 
 - (**Required**) You need to have [discord bot account](https://discord.com/developers/applications) configured. Set the value of `DISCORD_BOT_TOKEN` to your bot token.
 - (**Required**) You need create a [spotify developer application](https://developer.spotify.com/dashboard/applications). Set the client id and secret using `SPOTIFY_CLIENT_ID` and `SPOTIFY_SECRET`
+- (Temporary) (**Required**) For now, you also need a youtube API token. Set it using `YOUTUBE_API_KEY`. This will not longer be required in the future.
 
 ## Run
 To run the bot, simply cd into the cloned directory and use this command:

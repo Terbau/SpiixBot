@@ -11,6 +11,7 @@ services:
       DISCORD_BOT_TOKEN: ""
       SPOTIFY_CLIENT_ID: ""
       SPOTIFY_SECRET: ""
+      YOUTUBE_API_KEY: ""
     depends_on: 
       - lavalink
     links: 
