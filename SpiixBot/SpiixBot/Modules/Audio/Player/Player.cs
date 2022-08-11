@@ -36,6 +36,7 @@ namespace SpiixBot.Modules.Audio.Player
         private AudioService _audioService;
         private YoutubeService _youtubeService;
         private LavaNode _lavaNode;
+        private int _retryingLoadCounter = 0;
 
         public Player(AudioService audioService, YoutubeService youtubeService, LavaNode lavaNode)
         {
@@ -68,9 +69,17 @@ namespace SpiixBot.Modules.Audio.Player
             }
         }
 
-        public async Task PlayTrack(LavaPlayer player, QueueItem item)
+        public async Task PlayTrack(LavaPlayer player, QueueItem item, bool isRetry = false)
         {
             CurrentItem = item;
+            if (isRetry)
+            {
+                _retryingLoadCounter++;
+            }
+            else
+            {
+                _retryingLoadCounter = 0;
+            }
 
             CancelDisconnect();
 
@@ -145,10 +154,15 @@ namespace SpiixBot.Modules.Audio.Player
         public async Task OnTrackEnded(TrackEndedEventArgs args)
         {
             Console.WriteLine($"[Track Ended] {args.Track.Title} (ID: {args.Track.Id}) | Reason: {args.Reason}");
-            if (args.Reason == TrackEndReason.LoadFailed)
+            if (args.Reason == TrackEndReason.LoadFailed)  
             {
-                await PlayTrack(args.Player, CurrentItem);
-                return;
+                if (_retryingLoadCounter != 1)  // Ignore if retrying has already been attempted.
+                {
+                    await PlayTrack(args.Player, CurrentItem, isRetry: true);
+                    return;
+                }
+
+                _retryingLoadCounter = 0;
             }
 
             if (!(args.Reason == TrackEndReason.Finished || args.Reason == TrackEndReason.Replaced))
