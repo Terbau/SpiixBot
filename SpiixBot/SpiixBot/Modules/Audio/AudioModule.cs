@@ -1104,8 +1104,7 @@ namespace SpiixBot.Modules
                 return;
             }
 
-            player.Clear();
-            player.CancelDisconnect();
+            _audioService.CleanupAndRemovePlayer(Context.Guild.Id);
 
             await _lavaNode.LeaveAsync(lavaPlayer.VoiceChannel);
 

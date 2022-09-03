@@ -83,16 +83,27 @@ namespace SpiixBot.Services
             return overridden;
         }
 
-        public async Task SoftStopPlayer(SocketGuild guild, IVoiceChannel voiceChannel)
+        public void CleanupAndRemovePlayer(ulong guildId)
+        {
+            if (_guildSessions.TryGetValue(guildId, out Player player))
+            {
+                player.CancelDisconnect();
+                player.Clear();
+
+                _guildSessions.Remove(guildId, out _);
+            }
+        }
+
+        public async Task SoftStopPlayer(SocketGuild guild, IVoiceChannel voiceChannel, string reason = "Forceful disconnect")
         {
             Player player = GetOrCreatePlayer(guild);
             player.CancelDisconnect();
             await _lavaNode.LeaveAsync(voiceChannel);
 
             ISocketMessageChannel textChannel = player.TextChannel;
-            player.Clear();
+            CleanupAndRemovePlayer(guild.Id);
 
-            Console.WriteLine($"[Guild Audio Shutdown] Guild ID: {guild.Id} | Reason: Forceful disconnect");
+            Console.WriteLine($"[Guild Audio Shutdown] Guild ID: {guild.Id} | Reason: {reason}");
 
             if (textChannel != null) await textChannel.SendMessageAsync(embed: MessageHelper.GetEmbed(description: "Queue was cleared and playback stopped because the bot disconnected."));
         }
