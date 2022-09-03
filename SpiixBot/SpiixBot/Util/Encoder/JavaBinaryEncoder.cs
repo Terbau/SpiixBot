@@ -1,74 +1,109 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SpiixBot.Util.Encoder
 {
-    internal class JavaBinaryEncoder
+    internal ref struct JavaBinaryWriter
     {
-        private List<byte> _bytes = new List<byte>();
+        private readonly Span<byte> _bytes;
+        private int _currentWritePosition;
 
-        public void WriteUTF8(string input)
+        public int Position
         {
-            var bytes = Encoding.UTF8.GetBytes(input);
-            short length = (short)bytes.Length;
-
-            WriteShort(length);
-            Write(bytes, reverse: false);
-        }
-
-        public void WriteShort(short value)
-        {
-            var bytes = BitConverter.GetBytes(value);
-            Write(bytes);
-        }
-
-        public void WriteInt32(int value)
-        {
-            var bytes = BitConverter.GetBytes(value);
-            Write(bytes);
-        }
-
-        public void WriteLong(long value)
-        {
-            var bytes = BitConverter.GetBytes(value);
-            Write(bytes);
-        }
-
-        public void WriteBool(bool value)
-        {
-            var bytes = BitConverter.GetBytes(value);
-            Write(bytes);
-        }
-
-        public void WriteSbyte(sbyte value)
-        {
-            Write(new byte[] { (byte)value });
-        }
-
-        public void Write(byte[] bytes, bool reverse = true)
-        {
-            if (reverse) Array.Reverse(bytes);
-
-            foreach (byte byte_ in bytes)
+            get => _currentWritePosition;
+            set
             {
-                _bytes.Add(byte_);
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(Position),
+                        "An attempt was made to move the position before the beginning.");
+                }
+
+                _currentWritePosition = Math.Min(value, Length);
             }
         }
 
-        public byte[] GetAsByteArray()
+        public int Length { get; private set; }
+
+        public JavaBinaryWriter(Span<byte> bytes)
         {
-            int headerValue = 0x40000000 ^ (_bytes.Count + 1);
+            _bytes = bytes;
+            _currentWritePosition = 0;
+            Length = 0;
+        }
 
-            byte version = 2;
-            byte[] header = BitConverter.GetBytes(headerValue);
-            Array.Reverse(header);
+        public void Write(string value)
+        {
+            var bytesToWrite = Encoding.UTF8.GetByteCount(value);
 
-            _bytes.Insert(0, version);
-            _bytes.InsertRange(0, header);
+            Write((short)bytesToWrite);
 
-            return _bytes.ToArray();
+            if (Position < Length)
+            {
+                _bytes.Slice(Position, Length - Position).CopyTo(_bytes.Slice(Position + bytesToWrite, Length - Position));
+            }
+
+            Encoding.UTF8.GetBytes(value, _bytes.Slice(Position, bytesToWrite));
+            Length += bytesToWrite;
+            Position += bytesToWrite;
+        }
+
+        public void Write<T>(T value) where T : struct
+        {
+            var bytes = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1));
+
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes.Reverse();
+            }
+
+            Write(bytes);
+        }
+
+        public void Write(Span<byte> bytes)
+        {
+            if (Position < Length)
+            {
+                _bytes.Slice(Position, Length - Position).CopyTo(_bytes.Slice(Position + bytes.Length, Length - Position));
+            }
+
+            bytes.CopyTo(_bytes.Slice(Position, bytes.Length));
+            Length += bytes.Length;
+            Position += bytes.Length;
+        }
+
+        public int Seek(int offset, SeekOrigin origin)
+        {
+            return Position = origin switch
+            {
+                SeekOrigin.Begin => offset,
+                SeekOrigin.Current => Position + offset,
+                SeekOrigin.End => Length + offset,
+                _ => Position
+            };
+        }
+
+        public void WriteNullableText(string value)
+        {
+            var isValidString = !string.IsNullOrWhiteSpace(value);
+
+            Write(isValidString);
+
+            if (isValidString)
+            {
+                Write(value);
+            }
+        }
+
+        public void WriteVersioned(int flags)
+        {
+            var value = Length | flags << 30;
+            Seek(0, System.IO.SeekOrigin.Begin);
+            Write(value);
+            Seek(0, System.IO.SeekOrigin.End);
         }
     }
 }
